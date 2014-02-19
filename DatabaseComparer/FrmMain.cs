@@ -275,7 +275,7 @@ namespace DatabaseComparer
                             break;
 
                         case "Sql Server": sqlHelper = new SqlServerHelper();
-                            conn = "Server=" + this.cmboxDestServer.Text + "," + this.txtSPort.Text.Trim() + ";Initial Catalog=" + this.cmboxDDatabase.Text.Trim() + ";User ID=" + this.txtDUserId.Text.Trim() + ";Password=" + this.txtDPassword.Text;
+                            conn = "Server=" + this.cmboxDestServer.Text + "," + this.txtDPort.Text.Trim() + ";Initial Catalog=" + this.cmboxDDatabase.Text.Trim() + ";User ID=" + this.txtDUserId.Text.Trim() + ";Password=" + this.txtDPassword.Text;
                             sql = " SELECT  name FROM sys.databases order by name ";
                             break;
                     }
