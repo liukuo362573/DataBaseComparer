@@ -14,14 +14,13 @@ namespace DatabaseComparer.Common
         public static string SettingXml { get; set; }
 
         #region SaveSetting
-        public void SaveSetting(GroupBox gBox, Panel panel, ComboBox comBox, string parent)
+        public void SaveSetting(GroupBox gBox, Panel panel, ComboBox comBox, int type)
         {
             XDocument xDoc = XDocument.Load(SettingXml);
-
-            var check = xDoc.Descendants(parent).Elements().Where(p => p.Name == comBox.Name && p.Value == comBox.Text);
+            var check = xDoc.Descendants().Elements().Where(p => p.Name == comBox.Name && p.Value == comBox.Text).Select(p => p.Parent).Select(p => p.Attribute(Data.Type)).Where(p => int.Parse(p.Value) == type);
             if (check.Count() > 0)
             {
-                var xe = (from x in xDoc.Descendants(parent)
+                var xe = (from x in xDoc.Descendants().Elements().Where(p => p.Name == comBox.Name && p.Value == comBox.Text).Select(p => p.Parent)
                           select x);
 
                 foreach (Control c in gBox.Controls)
@@ -49,7 +48,10 @@ namespace DatabaseComparer.Common
                 var radio = panel.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked);
                 list.Add(new XElement("DBType", radio.Text));
 
-                xe.Add(new XElement(parent, list));
+                var xelement = new XElement(Data.XmlRoot, new XAttribute(Data.Type, type.ToString()), list);
+
+                xelement.Attribute(Data.Type).Value = type.ToString();
+                xe.Add(xelement);
                 xDoc.Save(SettingXml);
             }
         }

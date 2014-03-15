@@ -10,13 +10,18 @@ namespace DatabaseComparer.Common
 {
     public class Data
     {
+        public static string XmlRoot { get { return "Connect"; } }
+        public const string XmlSqlServer = "SqlServer";
+        public const string XmlMysql = "Mysql";
+        public const string Type = "type";
+
         public static bool IsIgnoreType { get; set; }//是否忽略数据库类型
         public static bool IsIgnoreLength { get; set; }//是否忽略数据库长度
+        public static int SourceType { get { return 0; } }
+        public static int DestinationType { get { return 1; } }
 
-        //下拉框Source数据库连接
-        internal static List<XElement> SourceList = null;
-        //下拉框Dest数据库连接
-        internal static List<XElement> DestinationList = null;
+        //下拉框数据库连接
+        internal static List<XElement> DataBaseList = null;
 
         #region 静态构造函数
         static Data()
@@ -33,8 +38,7 @@ namespace DatabaseComparer.Common
                 xe.Save(XmlHelper.SettingXml);
             }
             XDocument xdoc = XDocument.Load(XmlHelper.SettingXml);
-            SourceList = (from s in xdoc.Descendants("Source") select s).ToList();
-            DestinationList = (from s in xdoc.Descendants("Destination") select s).ToList();
+            DataBaseList = (from s in xdoc.Descendants(XmlRoot) select s).ToList();
         }
         #endregion
 

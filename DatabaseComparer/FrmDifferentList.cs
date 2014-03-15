@@ -9,6 +9,8 @@ using System.Windows.Forms;
 using System.Xml.Linq;
 using DatabaseComparer.Common;
 using System.Threading;
+using DatabaseComparer.DbHelper;
+using DatabaseComparer.UIControl;
 
 namespace DatabaseComparer
 {
@@ -506,7 +508,7 @@ namespace DatabaseComparer
         #region 窗体关闭时
         private void FrmDifferentList_FormClosing(object sender, FormClosingEventArgs e)
         {
-            UIControlHelper.ApplicationExit();
+            Application.ExitThread();
         }
         #endregion
 

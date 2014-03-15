@@ -1,19 +1,43 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Root>
-  <Source>
-    <cmboxSourceServer>192.168.1.241</cmboxSourceServer>
-    <cmboxSDatabase>ec-drp-media</cmboxSDatabase>
-    <txtSPort>1433</txtSPort>
-    <txtSPassword>123456</txtSPassword>
-    <txtSUserId>sa</txtSUserId>
-    <DBType>Sql Server</DBType>
-  </Source>
-  <Destination>
-    <cmboxDestServer>192.168.1.241</cmboxDestServer>
-    <cmboxDDatabase>ec-drp-tmp</cmboxDDatabase>
-    <txtDPort>3306</txtDPort>
-    <txtDPassword>yyc@2013</txtDPassword>
-    <txtDUserId>develop</txtDUserId>
+  <Connect type="0">
+    <cmboxServer>(local)</cmboxServer>
+    <cmboxDatabase>Ec-LuoDiNew</cmboxDatabase>
+    <txtPort>1433</txtPort>
+    <txtPassword>lhking</txtPassword>
+    <txtUserId>sa</txtUserId>
+    <DBType>SqlServer</DBType>
+  </Connect>
+  <Connect type="1">
+    <cmboxServer>(local)</cmboxServer>
+    <cmboxDatabase>Ec-LuoDi</cmboxDatabase>
+    <txtPort>1433</txtPort>
+    <txtPassword>lhking</txtPassword>
+    <txtUserId>sa</txtUserId>
+    <DBType>SqlServer</DBType>
+  </Connect>
+  <Connect type="0" selected="1">
+    <cmboxServer>192.168.1.241</cmboxServer>
+    <cmboxDatabase>ec-drp-media</cmboxDatabase>
+    <txtPort>1433</txtPort>
+    <txtPassword>123456</txtPassword>
+    <txtUserId>sa</txtUserId>
+    <DBType>SqlServer</DBType>
+  </Connect>
+  <Connect type="1">
+    <cmboxServer>192.168.1.241</cmboxServer>
+    <cmboxDatabase>Ec-Drp-FeiLan</cmboxDatabase>
+    <txtPort>3306</txtPort>
+    <txtPassword>yyc@2013</txtPassword>
+    <txtUserId>develop</txtUserId>
     <DBType>Mysql</DBType>
-  </Destination>
+  </Connect>
+  <Connect type="1">
+    <cmboxServer>121.199.162.242,30000</cmboxServer>
+    <cmboxDatabase>ec-drp-media</cmboxDatabase>
+    <txtPort>1433</txtPort>
+    <txtPassword>yyc@2013</txtPassword>
+    <txtUserId>develop</txtUserId>
+    <DBType>SqlServer</DBType>
+  </Connect>
 </Root>
