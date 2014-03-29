@@ -26,3 +26,5 @@ obj/
 [Rr]elease*/
 _ReSharper*/
 *.suo
+*.suo
+DatabaseComparer/bin/Debug/DatabaseComparer.exe
