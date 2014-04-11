@@ -1,20 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Root>
-  <Connect type="0">
+  <Connect type="0" selected="0">
     <cmboxServer>(local)</cmboxServer>
-    <cmboxDatabase>Ec-LuoDiNew</cmboxDatabase>
+    <cmboxDatabase>Ec-drp-media</cmboxDatabase>
     <txtPort>1433</txtPort>
     <txtPassword>lhking</txtPassword>
     <txtUserId>sa</txtUserId>
     <DBType>SqlServer</DBType>
   </Connect>
-  <Connect type="1">
-    <cmboxServer>(local)</cmboxServer>
-    <cmboxDatabase>Ec-LuoDi</cmboxDatabase>
-    <txtPort>1433</txtPort>
-    <txtPassword>lhking</txtPassword>
-    <txtUserId>sa</txtUserId>
-    <DBType>SqlServer</DBType>
+  <Connect type="1" selected="1">
+    <cmboxServer>192.168.1.241</cmboxServer>
+    <cmboxDatabase>ec-drp-tmp</cmboxDatabase>
+    <txtPort>3306</txtPort>
+    <txtPassword>yyc@2013</txtPassword>
+    <txtUserId>develop</txtUserId>
+    <DBType>Mysql</DBType>
   </Connect>
   <Connect type="0" selected="1">
     <cmboxServer>192.168.1.241</cmboxServer>
@@ -24,20 +24,12 @@
     <txtUserId>sa</txtUserId>
     <DBType>SqlServer</DBType>
   </Connect>
-  <Connect type="1">
-    <cmboxServer>192.168.1.241</cmboxServer>
-    <cmboxDatabase>Ec-Drp-FeiLan</cmboxDatabase>
-    <txtPort>3306</txtPort>
-    <txtPassword>yyc@2013</txtPassword>
-    <txtUserId>develop</txtUserId>
-    <DBType>Mysql</DBType>
-  </Connect>
-  <Connect type="1">
-    <cmboxServer>121.199.162.242,30000</cmboxServer>
-    <cmboxDatabase>ec-drp-media</cmboxDatabase>
+  <Connect type="1" selected="0">
+    <cmboxServer>(local)</cmboxServer>
+    <cmboxDatabase>nopcommerce</cmboxDatabase>
     <txtPort>1433</txtPort>
-    <txtPassword>yyc@2013</txtPassword>
-    <txtUserId>develop</txtUserId>
+    <txtPassword>lhking</txtPassword>
+    <txtUserId>sa</txtUserId>
     <DBType>SqlServer</DBType>
   </Connect>
 </Root>

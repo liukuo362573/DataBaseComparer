@@ -1,351 +1,138 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using System.Xml.Linq;
 using DatabaseComparer.Common;
-using System.Threading;
-using DatabaseComparer.DbHelper;
 using DatabaseComparer.UIControl;
 
 namespace DatabaseComparer
 {
     public partial class FrmDifferentList : Form
     {
+        private ContextMenuStrip MenuStrip;
         public TreeViewEx TvSource;
-        public TreeViewEx TvDest;
+        public TreeViewEx TvDestination;
 
+        public TreeView CurrentTV;
+
+        #region FrmDifferentList
         public FrmDifferentList()
         {
             InitializeComponent();
+            Core.DifferentForm = this;
+            MenuStrip = new ContextMenuStrip();
+            var item2 = new ToolStripMenuItem()
+            {
+                Name = "CreateField",
+                Text = "创建字段 Sql"
+            };
+            MenuStrip.Items.Add(item2);
+            MenuStrip.ItemClicked += new ToolStripItemClickedEventHandler(MenuStrip_ItemClicked);
+            MenuStrip.Opening += new CancelEventHandler(MenuStrip_Opening);
         }
+
+        void MenuStrip_Opening(object sender, CancelEventArgs e)
+        {
+            if (CurrentTV != null && CurrentTV.SelectedNode != null && CurrentTV.SelectedNode.Parent != null)
+            {
+                this.MenuStrip.Items[0].Enabled = true;
+            }
+            else
+            {
+                this.MenuStrip.Items[0].Enabled = false;
+            }
+        }
+
+        void MenuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            string conn = string.Empty;
+            TreeView tvAnother;
+            Dictionary<string, List<DBTable>> table = null;
+            switch (CurrentTV.Name)
+            {
+                case "TvSource":
+                    tvAnother = this.TvDestination;
+                    conn = Data.SourceConnectionString;
+                    table = Data.DestTable;
+                    break;
+                default:
+                    tvAnother = this.TvSource;
+                    conn = Data.DestConnectionString;
+                    table = Data.SourceTable;
+                    break;
+            }
+            if (string.IsNullOrEmpty(CurrentTV.SelectedNode.Parent.Text.Trim()) || string.IsNullOrEmpty(tvAnother.Nodes[CurrentTV.SelectedNode.Parent.Index].Text.Trim()))
+            {
+                MessageBox.Show("请先创建表！");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(tvAnother.Nodes[CurrentTV.SelectedNode.Parent.Index].Nodes[CurrentTV.SelectedNode.Index].Text.Trim()))
+            {
+                MessageBox.Show("另一边不存在该字段！");
+                return;
+            }
+
+            var sql = Core.CreateFieldSql(tvAnother.Nodes[CurrentTV.SelectedNode.Parent.Index].Text.Trim(), tvAnother.Nodes[CurrentTV.SelectedNode.Parent.Index].Nodes[CurrentTV.SelectedNode.Index].Text.Trim(), conn, table);
+
+            if (!string.IsNullOrEmpty(sql))
+            {
+                Clipboard.SetDataObject(sql);
+                MessageBox.Show("已复制到剪贴板");
+            }
+        }
+        #endregion
 
         #region FrmDifferentList_Load
         private void FrmDifferentList_Load(object sender, EventArgs e)
         {
-            #region 取Source里的所有表
-            string mysqlServer = "show tables";
-            string sqlServer = "SELECT name FROM sysobjects WHERE xtype='U' order by name";
-            DataTable sourceDT = null;
-            if (Data.IsMySql(Data.SourceConnectionString))
-            {
-                this.gBoxSource.Text += " [" + Data.SourceDataBase + "]";
-                sourceDT = new MySqlHelper().ExecuteDataTable(Data.SourceConnectionString, CommandType.Text, mysqlServer, null);
-            }
-            else
-            {
-                this.gBoxSource.Text += " [" + Data.SourceDataBase + "]";
-                sourceDT = new SqlServerHelper().ExecuteDataTable(Data.SourceConnectionString, CommandType.Text, sqlServer, null);
-            }
+            Core.LoadDBTable(this.gBoxSource, Data.SourceConnectionString, Data.SourceDataBase, Data.SourceTable);
+            Core.LoadDBTable(this.gBoxDest, Data.DestConnectionString, Data.DestDataBase, Data.DestTable);
 
-            foreach (var t in sourceDT.AsEnumerable().ToList())
-            {
-                Data.SourceTable.Add(t.ItemArray[0].ToString(), new List<DBTable>());
-            }
-            #endregion
-
-            #region 取Destination里的所有表
-            DataTable destDT = null;
-            if (Data.IsMySql(Data.DestConnectionString))
-            {
-                this.gBoxDest.Text += " [" + Data.DestDataBase + "]";
-                destDT = new MySqlHelper().ExecuteDataTable(Data.DestConnectionString, CommandType.Text, mysqlServer, null);
-            }
-            else
-            {
-                this.gBoxDest.Text += " [" + Data.DestDataBase + "]";
-                destDT = new SqlServerHelper().ExecuteDataTable(Data.DestConnectionString, CommandType.Text, sqlServer, null);
-            }
-            foreach (var t in destDT.AsEnumerable().ToList())
-            {
-                Data.DestTable.Add(t.ItemArray[0].ToString(), new List<DBTable>());
-            }
-            #endregion
-
-            LoadTableField(Data.SourceConnectionString, Data.SourceTable, pBarSource);
-            LoadTableField(Data.DestConnectionString, Data.DestTable, pBarDest);
+            Core.LoadTableField(Data.SourceConnectionString, Data.SourceTable, pBarSource);
+            Core.LoadTableField(Data.DestConnectionString, Data.DestTable, pBarDest);
 
             #region 创建TreeView
             TvSource = new TreeViewEx();
             TvSource.Name = "TvSource";
-            TvDest = new TreeViewEx();
-            TvDest.Name = "TvDest";
+            TvDestination = new TreeViewEx();
+            TvDestination.Name = "TvDestination";
 
             this.gBoxSource.Controls.Add(TvSource);
-            this.gBoxDest.Controls.Add(TvDest);
+            this.gBoxDest.Controls.Add(TvDestination);
 
             this.TvSource.Dock = DockStyle.Fill;
-            this.TvDest.Dock = DockStyle.Fill;
+            this.TvDestination.Dock = DockStyle.Fill;
             this.TvSource.AfterExpand += new TreeViewEventHandler(TreeView_AfterExpand);
-            this.TvDest.AfterExpand += new TreeViewEventHandler(TreeView_AfterExpand);
+            this.TvDestination.AfterExpand += new TreeViewEventHandler(TreeView_AfterExpand);
             this.TvSource.AfterCollapse += new TreeViewEventHandler(TreeView_AfterCollapse);
-            this.TvDest.AfterCollapse += new TreeViewEventHandler(TreeView_AfterCollapse);
+            this.TvDestination.AfterCollapse += new TreeViewEventHandler(TreeView_AfterCollapse);
 
             this.TvSource.BeforeSelect += new TreeViewCancelEventHandler(TreeView_BeforeSelect);
-            this.TvDest.BeforeSelect += new TreeViewCancelEventHandler(TreeView_BeforeSelect);
+            this.TvDestination.BeforeSelect += new TreeViewCancelEventHandler(TreeView_BeforeSelect);
             this.TvSource.AfterSelect += new TreeViewEventHandler(TreeView_AfterSelect);
-            this.TvDest.AfterSelect += new TreeViewEventHandler(TreeView_AfterSelect);
+            this.TvDestination.AfterSelect += new TreeViewEventHandler(TreeView_AfterSelect);
+
+            this.TvSource.NodeMouseClick += new TreeNodeMouseClickEventHandler(TreeView_NodeMouseClick);
+            this.TvDestination.NodeMouseClick += new TreeNodeMouseClickEventHandler(TreeView_NodeMouseClick);
+
+            TvSource.ContextMenuStrip = this.MenuStrip;
+            TvDestination.ContextMenuStrip = this.MenuStrip;
             #endregion
 
-            DataBaseCompare();
-        }
-
-        #endregion
-
-        #region 载入每个表的字段
-        private void LoadTableField(string conn, Dictionary<string, List<DBTable>> list, ProgressBar pBar)
-        {
-            try
-            {
-                pBar.Minimum = 0;
-                pBar.Maximum = list.Count;
-
-                Thread thread = new System.Threading.Thread(delegate()
-                {
-                    int current = 0;
-                    foreach (var t in list)
-                    {
-                        this.BeginInvoke(new MethodInvoker(delegate
-                        {
-                            pBar.Value = current;
-                        }));
-
-                        string sql = string.Empty;
-                        if (Data.IsMySql(conn))
-                        {
-                            #region MySql数据库读取每张表的字段
-                            sql = "SHOW FULL COLUMNS FROM " + t.Key;
-                            DataTable dt = new MySqlHelper().ExecuteDataTable(conn, CommandType.Text, sql, null);
-                            foreach (var field in dt.AsEnumerable().ToList())
-                            {
-                                DBTable item = new DBTable();
-                                item.Field = field[0].ToString();
-                                int loc = field[1].ToString().IndexOf("(");
-                                if (loc > 0)
-                                {
-                                    item.Type = field[1].ToString().Substring(0, loc);
-                                    item.Length = field[1].ToString().Substring(loc + 1).TrimEnd(')').Uint();
-                                }
-                                else
-                                {
-                                    item.Type = field[1].ToString();
-                                }
-                                list[t.Key].Add(item);
-                            }
-                            #endregion
-                        }
-                        else
-                        {
-                            #region SqlServer数据库读取每张表的字段
-                            sql = "SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('" + t.Key + "') ;";
-                            DataTable dt = new SqlServerHelper().ExecuteDataTable(conn, CommandType.Text, sql, null);
-                            foreach (var field in dt.AsEnumerable().ToList())
-                            {
-                                DBTable item = new DBTable();
-                                item.Field = field["name"].ToString();
-                                list[t.Key].Add(item);
-                            }
-
-                            foreach (var field in list[t.Key])
-                            {
-                                sql = "select data_type,character_maximum_length from INFORMATION_SCHEMA.COLUMNS IC where TABLE_NAME = '" + t.Key + "' and COLUMN_NAME = '" + field.Field + "'";
-                                DataTable temp = new SqlServerHelper().ExecuteDataTable(conn, CommandType.Text, sql, null);
-                                if (temp.Rows.Count > 0)
-                                {
-                                    field.Type = temp.Rows[0][0].ToString();
-                                    field.Length = temp.Rows[0][1].ToString().Uint();
-                                }
-                            }
-                            #endregion
-                        }
-                        current++;
-                    }
-                    this.BeginInvoke(new MethodInvoker(delegate
-                       {
-                           pBar.Visible = false;
-                       }));
-                });
-                thread.IsBackground = true;
-                thread.Start();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
+            Core.DataBaseCompare(this.pBarSource, this.pBarDest);
         }
         #endregion
 
-        #region 这个线程用于比较两个库的不同
-        private void DataBaseCompare()
+        #region 处理在树节点上右击
+        private void TreeView_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-            try
-            {
-                Thread thread = new System.Threading.Thread(delegate()
-                       {
-                           #region 判断进度条是否完成
-                           while (true)
-                           {
-                               if (this.pBarSource.Visible == true || this.pBarDest.Visible == true)
-                               {
-                                   Thread.Sleep(1000);
-                                   continue;
-                               }
-                               else
-                               {
-                                   break;
-                               }
-                           }
-                           #endregion
-
-                           List<string> HandledTakble = new List<string>();
-
-                           #region 先循环Source，后循环Dest
-                           ShowCompareResult(Data.SourceTable, this.TvSource, Data.DestTable, this.TvDest, HandledTakble);
-                           #endregion
-
-                           #region 先循环Dest，后循环Source
-                           ShowCompareResult(Data.DestTable, this.TvDest, Data.SourceTable, this.TvSource, HandledTakble);
-                           #endregion
-                       });
-                thread.IsBackground = true;
-                thread.Start();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
+            CurrentTV = sender as TreeView;
         }
-        #endregion
 
-        #region 显示比较的树形结果
-        private void ShowCompareResult(Dictionary<string, List<DBTable>> source, TreeView tSource, Dictionary<string, List<DBTable>> dest, TreeView tDest, List<string> HandledTable)
-        {
-            foreach (var stable in source)
-            {
-
-                var dtable = dest.Where(p => p.Key.ToLower() == stable.Key.ToLower()).Select(p => p.Value);
-                if (dtable != null && dtable.Count() > 0)
-                {
-                    if (!HandledTable.Contains(stable.Key.ToLower()))
-                    {
-                        HandledTable.Add(stable.Key.ToLower());
-                        HandleDifference(stable, tSource, dtable.FirstOrDefault().ToList(), tDest);
-                    }
-                }
-                else
-                {
-                    List<TreeNode> array = new List<TreeNode>();
-                    List<TreeNode> arrayEmpty = new List<TreeNode>(); //添加一个没有数据的TreeNode对应
-
-                    for (int i = 0; i < stable.Value.Count; i++)
-                    {
-                        string text = stable.Value[i].Field + " " + stable.Value[i].Type;
-                        array.Add(new TreeNode(text));
-                        arrayEmpty.Add(new TreeNode(string.Empty.PadRight(text.Length, ' ')));
-                    }
-                    TreeNode treeNode = new TreeNode(stable.Key, array.ToArray());
-                    TreeNode treeNodeEmpty = new TreeNode(string.Empty.PadLeft(stable.Key.Length, ' '), arrayEmpty.ToArray());
-                    this.BeginInvoke(new MethodInvoker(delegate
-                      {
-                          tSource.Nodes.Add(treeNode);
-                          tDest.Nodes.Add(treeNodeEmpty);
-                      }));
-                }
-            }
-        }
-        #endregion
-
-        #region  处理两个库中每一张表不同的结构
-        private void HandleDifference(KeyValuePair<string, List<DBTable>> list, TreeView tSource, List<DBTable> anotherList, TreeView tDest)
-        {
-            List<TreeNode> array = new List<TreeNode>();
-            List<TreeNode> arrayAnother = new List<TreeNode>(); //添加一个没有数据的TreeNode对应
-
-            List<string> HandledField = new List<string>();
-
-            CompareTableField(list.Value, anotherList, array, arrayAnother, HandledField);
-            CompareTableField(anotherList, list.Value, arrayAnother, array, HandledField);
-
-            TreeNode treeNode = new TreeNode(list.Key, array.ToArray());
-            TreeNode treeNodeEmpty = new TreeNode(list.Key, arrayAnother.ToArray());
-            if (array.Count > 0 && arrayAnother.Count > 0)
-            {
-                this.BeginInvoke(new MethodInvoker(delegate
-                {
-                    tSource.Nodes.Add(treeNode);
-                    tDest.Nodes.Add(treeNodeEmpty);
-                }));
-            }
-        }
-        #endregion
-
-        #region  遍历表字段
-        private void CompareTableField(List<DBTable> list, List<DBTable> anotherList, List<TreeNode> array, List<TreeNode> arrayAnother, List<string> HandledField)
-        {
-            foreach (var one in list)
-            {
-                bool flag = false;
-
-                if (HandledField.Contains(one.Field.ToLower()))
-                {
-                    continue;
-                }
-                HandledField.Add(one.Field.ToLower());
-
-                #region 比较字段
-                foreach (var another in anotherList)
-                {
-                    if (one.Field.ToLower() == another.Field.ToLower())//字段名相同
-                    {
-                        if (one.ToString() == another.ToString()) //字段类型和长度完全相同
-                        {
-                            flag = true;
-                            break;
-                        }
-
-                        if (Data.IsIgnoreType && Data.IsIgnoreLength) //忽略类型和长度
-                        {
-                            flag = true;
-                            break;
-                        }
-
-                        if (Data.IsIgnoreType) //忽略类型
-                        {
-                            if ((one.Field + one.Length).ToLower() == (another.Field + another.Length).ToLower())
-                            {
-                                flag = true;
-                                break;
-                            }
-                        }
-
-                        if (Data.IsIgnoreLength) //忽略长度
-                        {
-                            if ((one.Field + one.Type).ToLower() == (another.Field + another.Type).ToLower())
-                            {
-                                flag = true;
-                                break;
-                            }
-                        }
-
-                        //字段类型或是长度不相同
-                        flag = true;
-                        array.Add(new TreeNode(one.ToString()));
-                        arrayAnother.Add(new TreeNode(another.ToString()));
-                    }
-                }
-                #endregion
-                if (!flag)
-                {
-                    string text = one.ToString();
-                    array.Add(new TreeNode(text));
-                    arrayAnother.Add(new TreeNode(string.Empty.PadRight(text.Length, ' ')));
-                }
-            }
-        }
         #endregion
 
         #region TreeView同步折叠和展开处理、节点选中前后处理
@@ -365,10 +152,9 @@ namespace DatabaseComparer
             TreeView tvAnother = null;
             int cIndex = e.Node.Index;
 
-            //tv.Nodes[cIndex].EnsureVisible();
             if (tv.Name == "TvSource")
             {
-                tvAnother = this.gBoxDest.Controls.Find("TvDest", true).FirstOrDefault() as TreeView;
+                tvAnother = this.gBoxDest.Controls.Find("TvDestination", true).FirstOrDefault() as TreeView;
             }
             else
             {
@@ -379,7 +165,6 @@ namespace DatabaseComparer
                 case 0: tvAnother.Nodes[cIndex].Expand(); break;
                 case 1: tvAnother.Nodes[cIndex].Collapse(); break;
             }
-            //tvAnother.Nodes[cIndex].EnsureVisible();
         }
 
         void TreeView_AfterSelect(object sender, TreeViewEventArgs e)
@@ -395,7 +180,7 @@ namespace DatabaseComparer
 
             if (tv.Name == "TvSource")
             {
-                tvAnother = this.gBoxDest.Controls.Find("TvDest", true).FirstOrDefault() as TreeView;
+                tvAnother = this.gBoxDest.Controls.Find("TvDestination", true).FirstOrDefault() as TreeView;
             }
             else
             {
@@ -429,7 +214,7 @@ namespace DatabaseComparer
             TreeView tvAnother = null;
             if (tv.Name == "TvSource")
             {
-                tvAnother = this.gBoxDest.Controls.Find("TvDest", true).FirstOrDefault() as TreeView;
+                tvAnother = this.gBoxDest.Controls.Find("TvDestination", true).FirstOrDefault() as TreeView;
             }
             else
             {
@@ -511,7 +296,5 @@ namespace DatabaseComparer
             Application.ExitThread();
         }
         #endregion
-
-
     }
 }

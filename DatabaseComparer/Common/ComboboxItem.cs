@@ -43,10 +43,18 @@ namespace DatabaseComparer.Common
         /// 长度
         /// </summary>
         public int Length { get; set; }
+        /// <summary>
+        /// 是否可以为空
+        /// </summary>
+        public bool CanNull { get; set; }
+        /// <summary>
+        /// 注释
+        /// </summary>
+        public string Comment { get; set; }
 
         public override string ToString()
         {
-            return Field + " " + Type + " " + Length;
+            return Field + " " + Type + "(" + Length + ")";
         }
     }
     #endregion

@@ -112,21 +112,21 @@ namespace DatabaseComparer.UIControl
 
             if (list != null)
             {
-                foreach (var server in list)
+                for (int i = 0; i < list.Count; i++)
                 {
                     var item = new ComboboxItem();
-                    item.Text = server.ToString();
-                    item.Value = server.ToString();
+                    item.Text = list[i].ToString();
+                    item.Value = list[i].ToString();
                     this.cmboxServer.Items.Add(item);
 
-                    if (server.Parent.Parent.Attribute("selected") != null && server.Parent.Parent.Attribute("selected").Value == "1")
+                    if (list[i].Parent.Parent.Attribute(Data.Selected) != null && list[i].Parent.Parent.Attribute(Data.Selected).Value == "1")
                     {
                         selected = true;
-                        this.cmboxServer.SelectedItem = item.Value;
+                        this.cmboxServer.SelectedIndex = i;
                     }
                 }
             }
-            if (!selected)
+            if (!selected && this.cmboxServer.Items.Count > 0)
             {
                 this.cmboxServer.SelectedIndex = 0;
             }

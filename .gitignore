@@ -28,3 +28,5 @@ _ReSharper*/
 *.suo
 *.suo
 DatabaseComparer/bin/Debug/DatabaseComparer.exe
+*.suo
+*.suo

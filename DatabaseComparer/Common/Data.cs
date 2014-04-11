@@ -14,6 +14,7 @@ namespace DatabaseComparer.Common
         public const string XmlSqlServer = "SqlServer";
         public const string XmlMysql = "Mysql";
         public const string Type = "type";
+        public const string Selected = "selected";
 
         public static bool IsIgnoreType { get; set; }//是否忽略数据库类型
         public static bool IsIgnoreLength { get; set; }//是否忽略数据库长度
@@ -57,19 +58,22 @@ namespace DatabaseComparer.Common
         //保存Dest库中的表和字段
         internal static Dictionary<string, List<DBTable>> DestTable = new Dictionary<string, List<DBTable>>();
 
-        #region IsMySql
-        public static bool IsMySql(string conn)
+        /// <summary>
+        /// 这些类型在增加字段的时候需要带上长度
+        /// </summary>
+        public static List<string> SqlFiledType = new List<string>()
         {
-            if (conn.Contains("Uid"))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        #endregion
+           "binary","char","datetime2","decimal","nchar","numeric",
+           "nvarchar","time","varbinary","varchar"
+        };
 
+        /// <summary>
+        /// 这些类型在增加字段的时候需要带上长度
+        /// </summary>
+        public static List<string> MySqlFiledType = new List<string>()
+        {
+           "binary","char","datetime2","decimal","nchar","numeric",
+           "nvarchar","time","varbinary","varchar"
+        };
     }
 }

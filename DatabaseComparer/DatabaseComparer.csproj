@@ -35,7 +35,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MySql.Data, Version=6.6.5.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL" />
+    <Reference Include="MySql.Data, Version=6.6.5.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Dll\MySql.Data.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
@@ -52,6 +55,7 @@
     <Compile Include="Common\ComboboxItem.cs" />
     <Compile Include="Common\ConvertExtensionMethods.cs" />
     <Compile Include="Common\Data.cs" />
+    <Compile Include="Common\Core.cs" />
     <Compile Include="DbHelper\ISqlHelper.cs" />
     <Compile Include="DbHelper\MySqlHelper.cs" />
     <Compile Include="Common\XmlHelper.cs" />
@@ -116,6 +120,7 @@
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="readme.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

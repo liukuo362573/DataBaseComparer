@@ -67,6 +67,7 @@
             // 
             // dbConnectDestination
             // 
+            this.dbConnectDestination.ConnectString = null;
             this.dbConnectDestination.Location = new System.Drawing.Point(294, 2);
             this.dbConnectDestination.Name = "dbConnectDestination";
             this.dbConnectDestination.Size = new System.Drawing.Size(283, 204);
@@ -74,6 +75,7 @@
             // 
             // dbConnectSource
             // 
+            this.dbConnectSource.ConnectString = null;
             this.dbConnectSource.Location = new System.Drawing.Point(3, 2);
             this.dbConnectSource.Name = "dbConnectSource";
             this.dbConnectSource.Size = new System.Drawing.Size(283, 204);
@@ -89,6 +91,7 @@
             this.Controls.Add(this.ckBoxIgnoreLength);
             this.Controls.Add(this.ckBoxIgnoreType);
             this.Controls.Add(this.btnNext);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "FrmMain";

@@ -1,11 +1,10 @@
 E:\My\DatabaseComparer\DatabaseComparer\bin\Debug\Data\DB.xml
 E:\My\DatabaseComparer\DatabaseComparer\bin\Debug\DatabaseComparer.exe
 E:\My\DatabaseComparer\DatabaseComparer\bin\Debug\DatabaseComparer.pdb
-E:\My\DatabaseComparer\DatabaseComparer\obj\x86\Debug\ResolveAssemblyReference.cache
 E:\My\DatabaseComparer\DatabaseComparer\obj\x86\Debug\DatabaseComparer.FrmDifferentList.resources
 E:\My\DatabaseComparer\DatabaseComparer\obj\x86\Debug\DatabaseComparer.FrmMain.resources
 E:\My\DatabaseComparer\DatabaseComparer\obj\x86\Debug\DatabaseComparer.Properties.Resources.resources
-E:\My\DatabaseComparer\DatabaseComparer\obj\x86\Debug\GenerateResource.read.1.tlog
-E:\My\DatabaseComparer\DatabaseComparer\obj\x86\Debug\GenerateResource.write.1.tlog
+E:\My\DatabaseComparer\DatabaseComparer\obj\x86\Debug\DatabaseComparer.UIControl.DbConnect.resources
+E:\My\DatabaseComparer\DatabaseComparer\obj\x86\Debug\DatabaseComparer.csproj.GenerateResource.Cache
 E:\My\DatabaseComparer\DatabaseComparer\obj\x86\Debug\DatabaseComparer.exe
 E:\My\DatabaseComparer\DatabaseComparer\obj\x86\Debug\DatabaseComparer.pdb
