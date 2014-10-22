@@ -17,6 +17,7 @@ namespace DatabaseComparer.Common
 
         static string MySqlServer = "show tables";
         static string SqlServer = "SELECT name FROM sysobjects WHERE xtype='U' order by name";
+        static string OracleServer = "SELECT table_name as name  FROM user_tables order by table_name";
 
         #region 这个线程用于比较两个库的不同
         public static void DataBaseCompare(ProgressBar pBarSource, ProgressBar pBarDest)
@@ -125,16 +126,25 @@ namespace DatabaseComparer.Common
         public static void LoadDBTable(GroupBox gBox, string conn, string db, Dictionary<string, List<DBTable>> data)
         {
             DataTable dt = null;
-            if (Core.IsMySql(conn))
+            string dbType = GetDBType(conn);
+            switch (dbType)
             {
-                gBox.Text += " [" + db + "]";
-                dt = new MySqlHelper().ExecuteDataTable(conn, CommandType.Text, MySqlServer, null);
+                case Data.XmlMysql:
+                    gBox.Text += " [" + db + "]";
+                    dt = new MySqlHelper().ExecuteDataTable(conn, CommandType.Text, MySqlServer, null);
+                    break;
+
+                case Data.XmlOracle:
+                    gBox.Text += " [" + db + "]";
+                    dt = new OracleHelper().ExecuteDataTable(conn, CommandType.Text, OracleServer);
+                    break;
+
+                case Data.XmlSqlServer:
+                    gBox.Text += " [" + db + "]";
+                    dt = new SqlServerHelper().ExecuteDataTable(conn, CommandType.Text, SqlServer, null);
+                    break;
             }
-            else
-            {
-                gBox.Text += " [" + db + "]";
-                dt = new SqlServerHelper().ExecuteDataTable(conn, CommandType.Text, SqlServer, null);
-            }
+
             foreach (var t in dt.AsEnumerable().ToList())
             {
                 data.Add(t.ItemArray[0].ToString(), new List<DBTable>());
@@ -227,38 +237,54 @@ namespace DatabaseComparer.Common
                         }));
 
                         string sql = string.Empty;
-                        if (Core.IsMySql(conn))
+                        DataTable dt = null;
+
+                        string dbType = GetDBType(conn);
+                        switch (dbType)
                         {
-                            #region MySql数据库读取每张表的字段
+                            case Data.XmlMysql:
+                                #region MySql数据库读取每张表的字段
 
-                            sql = "SHOW FULL COLUMNS FROM " + t.Key;
-                            DataTable dt = new MySqlHelper().ExecuteDataTable(conn, CommandType.Text, sql, null);
-                            foreach (var field in dt.AsEnumerable().ToList())
-                            {
-                                DBTable item = new DBTable();
-                                item.Field = field["Field"].Ustring();
-                                int loc = field["Type"].Ustring().IndexOf("(");
-                                if (loc > 0)
+                                sql = "SHOW FULL COLUMNS FROM " + t.Key;
+                                dt = new MySqlHelper().ExecuteDataTable(conn, CommandType.Text, sql, null);
+                                foreach (var field in dt.AsEnumerable().ToList())
                                 {
-                                    item.Type = field["Type"].ToString().Substring(0, loc);
-                                    item.Length = field["Type"].ToString().Substring(loc + 1).TrimEnd(')').Uint();
+                                    DBTable item = new DBTable();
+                                    item.Field = field["Field"].Ustring();
+                                    int loc = field["Type"].Ustring().IndexOf("(");
+                                    if (loc > 0)
+                                    {
+                                        item.Type = field["Type"].ToString().Substring(0, loc);
+                                        item.Length = field["Type"].ToString().Substring(loc + 1).TrimEnd(')').Uint();
+                                    }
+                                    else
+                                    {
+                                        item.Type = field["Type"].ToString();
+                                    }
+                                    item.CanNull = (field["Null"].Ustring().ToLower() == "yes" ? true : false);
+                                    item.Comment = field["Comment"].Ustring();
+                                    list[t.Key].Add(item);
                                 }
-                                else
+                                #endregion
+                                break;
+
+                            case Data.XmlOracle:
+                                sql = "select COLUMN_NAME,DATA_TYPE,DATA_LENGTH,NULLABLE from USER_TAB_COLS  where TABLE_NAME='" + t.Key + "' ";
+                                dt = new OracleHelper().ExecuteDataTable(conn, CommandType.Text, sql);
+                                foreach (var field in dt.AsEnumerable().ToList())
                                 {
-                                    item.Type = field["Type"].ToString();
+                                    DBTable item = new DBTable();
+                                    item.Field = field["COLUMN_NAME"].ToString();
+                                    item.Type = field["DATA_TYPE"].ToString();
+                                    item.Length = field["DATA_LENGTH"].Uint();
+                                    item.CanNull = (field["NULLABLE"].Ustring() == "Y" ? true : false);
+                                    list[t.Key].Add(item);
                                 }
-                                item.CanNull = (field["Null"].Ustring().ToLower() == "yes" ? true : false);
-                                item.Comment = field["Comment"].Ustring();
-                                list[t.Key].Add(item);
-                            }
+                                break;
+                            case Data.XmlSqlServer:
+                                #region SqlServer数据库读取每张表的字段
 
-                            #endregion
-                        }
-                        else
-                        {
-                            #region SqlServer数据库读取每张表的字段
-
-                            sql = @"SELECT table_name,
+                                sql = @"SELECT table_name,
                                         column_name,
                                         ISNULL(column_default,'') AS column_default,
                                         is_nullable,
@@ -266,20 +292,21 @@ namespace DatabaseComparer.Common
                                         ISNULL(ISNULL(ISNULL(character_maximum_length,numeric_precision),datetime_precision),1) AS column_length
                                         FROM information_schema.columns
                                         WHERE NOT table_name IN('sysdiagrams','dtproperties') and table_name='" + t.Key +
-                                  "'";
+                                      "'";
 
-                            DataTable dt = new SqlServerHelper().ExecuteDataTable(conn, CommandType.Text, sql, null);
-                            foreach (var field in dt.AsEnumerable().ToList())
-                            {
-                                DBTable item = new DBTable();
-                                item.Field = field["column_name"].ToString();
-                                item.Type = field["data_type"].ToString();
-                                item.Length = field["column_length"].Uint();
-                                item.CanNull = (field["is_nullable"].Ustring().ToLower() == "yes" ? true : false);
-                                list[t.Key].Add(item);
-                            }
+                                dt = new SqlServerHelper().ExecuteDataTable(conn, CommandType.Text, sql, null);
+                                foreach (var field in dt.AsEnumerable().ToList())
+                                {
+                                    DBTable item = new DBTable();
+                                    item.Field = field["column_name"].ToString();
+                                    item.Type = field["data_type"].ToString();
+                                    item.Length = field["column_length"].Uint();
+                                    item.CanNull = (field["is_nullable"].Ustring().ToLower() == "yes" ? true : false);
+                                    list[t.Key].Add(item);
+                                }
 
-                            #endregion
+                                #endregion
+                                break;
                         }
                         current++;
                     }
@@ -307,62 +334,101 @@ namespace DatabaseComparer.Common
             var t = table.Where(p => p.Key.ToLower() == tableName.ToLower()).FirstOrDefault();
             var one = t.Value.Where(p => p.Field.ToLower() == filedName.ToLower().Trim()).FirstOrDefault();
 
-            if (Core.IsMySql(conn))
+            string dbType = GetDBType(conn);
+            switch (dbType)
             {
-                if (Data.MySqlFiledType.Contains(one.Type.ToLower()))
-                {
-                    ok += " `" + one.Field + "` " + one.Type + "(" + one.Length.ToString() + ")";
-                }
-                else
-                {
-                    ok += " `" + one.Field + "` " + one.Type;
-                }
+                case Data.XmlMysql:
 
-                if (one.CanNull)
-                {
-                    ok += " Null ";
-                }
-                else
-                {
-                    ok += " Not Null ";
-                }
-                sql = "ALTER TABLE " + "`" + tableName + "`" + " Add Column " + ok + ";";
-            }
-            else
-            {
-                if (Data.SqlFiledType.Contains(one.Type.ToLower()))
-                {
-                    ok += "[" + one.Field + "]" + one.Type + "(" + one.Length.ToString() + ")";
-                }
-                else
-                {
-                    ok += "[" + one.Field + "] " + one.Type;
-                }
+                    #region Mysql
+                    if (Data.MySqlFiledType.Contains(one.Type.ToLower()))
+                    {
+                        ok += " `" + one.Field + "` " + one.Type + "(" + one.Length.ToString() + ")";
+                    }
+                    else
+                    {
+                        ok += " `" + one.Field + "` " + one.Type;
+                    }
 
-                if (one.CanNull)
-                {
-                    ok += " Null ";
-                }
-                else
-                {
-                    ok += " Not Null ";
-                }
-                sql = "ALTER TABLE " + "[" + tableName + "]" + " Add " + ok + ";";
+                    if (one.CanNull)
+                    {
+                        ok += " Null ";
+                    }
+                    else
+                    {
+                        ok += " Not Null ";
+                    }
+                    sql = "ALTER TABLE " + "`" + tableName + "`" + " Add Column " + ok + ";";
+                    #endregion
+
+                    break;
+
+                case Data.XmlOracle:
+
+                    #region Mysql
+                    if (Data.MySqlFiledType.Contains(one.Type.ToLower()))
+                    {
+                        ok += " `" + one.Field + "` " + one.Type + "(" + one.Length.ToString() + ")";
+                    }
+                    else
+                    {
+                        ok += " `" + one.Field + "` " + one.Type;
+                    }
+
+                    if (one.CanNull)
+                    {
+                        ok += " Null ";
+                    }
+                    else
+                    {
+                        ok += " Not Null ";
+                    }
+                    sql = "ALTER TABLE " + "`" + tableName + "`" + " Add Column " + ok + ";";
+                    #endregion
+
+                    break;
+                case Data.XmlSqlServer:
+
+                    #region SqlServer
+                    if (Data.SqlFiledType.Contains(one.Type.ToLower()))
+                    {
+                        ok += "[" + one.Field + "]" + one.Type + "(" + one.Length.ToString() + ")";
+                    }
+                    else
+                    {
+                        ok += "[" + one.Field + "] " + one.Type;
+                    }
+
+                    if (one.CanNull)
+                    {
+                        ok += " Null ";
+                    }
+                    else
+                    {
+                        ok += " Not Null ";
+                    }
+                    sql = "ALTER TABLE " + "[" + tableName + "]" + " Add " + ok + ";";
+                    #endregion
+
+                    break;
             }
             return sql;
         }
         #endregion
 
-        #region IsMySql
-        public static bool IsMySql(string conn)
+        #region GetDBType
+        public static string GetDBType(string conn)
         {
             if (conn.Contains("Uid"))
             {
-                return true;
+                return Data.XmlMysql;
+            }
+            else if (conn.ToUpper().Contains("DESCRIPTION=(ADDRESS="))
+            {
+                return Data.XmlOracle;
             }
             else
             {
-                return false;
+                return Data.XmlSqlServer;
             }
         }
         #endregion

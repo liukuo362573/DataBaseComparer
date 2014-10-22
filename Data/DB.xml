@@ -9,11 +9,11 @@
     <DBType>Oracle</DBType>
   </Connect>
   <Connect selected="1" type="1">
-    <cmboxServer>10.2.1.87</cmboxServer>
+    <cmboxServer>10.2.0.72</cmboxServer>
     <cmboxDatabase></cmboxDatabase>
     <txtPort>1521</txtPort>
-    <txtPassword>Hmp141006</txtPassword>
-    <txtUserId>Hmp141006</txtUserId>
+    <txtPassword>hlmip001_a</txtPassword>
+    <txtUserId>hlmip001_a</txtUserId>
     <DBType>Oracle</DBType>
   </Connect>
 </Root>

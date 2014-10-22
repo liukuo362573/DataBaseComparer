@@ -29,6 +29,7 @@ namespace DatabaseComparer.UIControl
             this.lblTip.Text = string.Empty;
             this.rBtnMysql.Text = Data.XmlMysql;
             this.rBtnSqlServer.Text = Data.XmlSqlServer;
+            this.rBtnOracle.Text = Data.XmlOracle;
             this.rBtnSqlServer.Checked = true;
             rBtn_Click(this.rBtnSqlServer, null);
         }
@@ -46,9 +47,9 @@ namespace DatabaseComparer.UIControl
             ISqlHelper sqlHelper = null;
             string sqlgetdb = string.Empty;
 
-            if (!string.IsNullOrEmpty(cmboxServer.Text) && !string.IsNullOrEmpty(this.cmboxDatabase.Text)
+            if (!string.IsNullOrEmpty(cmboxServer.Text)
                 && !string.IsNullOrEmpty(this.txtUserId.Text) && !string.IsNullOrEmpty(this.txtPassword.Text)
-                && !string.IsNullOrEmpty(this.txtPort.Text))
+                || (!this.rBtnOracle.Checked && !string.IsNullOrEmpty(this.cmboxDatabase.Text)))
             {
                 this.lblTip.ForeColor = Color.Indigo;
                 this.lblTip.Text = Data.Connecting;
@@ -204,10 +205,26 @@ namespace DatabaseComparer.UIControl
 
                 case Data.XmlSqlServer:
                     sqlHelper = new SqlServerHelper();
-                    conn = "Server=" + this.cmboxServer.Text.Trim() + "," + (this.cmboxServer.Text.Contains(",") ? "" : this.txtPort.Text.Trim()) +
-                           ";Initial Catalog=" + this.cmboxDatabase.Text.Trim() + ";User ID=" +
-                           this.txtUserId.Text.Trim() + ";Password=" + this.txtPassword.Text;
+                    conn = string.Empty;
+                    conn += "Server=" + this.cmboxServer.Text.Trim();
+                    if (!string.IsNullOrEmpty(this.txtPort.Text.Trim()))
+                    {
+                        conn += ",";
+                    }
+                    conn += (this.cmboxServer.Text.Contains(",") ? "" : this.txtPort.Text.Trim()) + ";";
+                    conn += "Initial Catalog=" + this.cmboxDatabase.Text.Trim() + ";";
+                    conn += "User ID=" + this.txtUserId.Text.Trim() + ";Password=" + this.txtPassword.Text;
                     sql = " SELECT  name FROM sys.databases order by name ";
+                    break;
+
+                case Data.XmlOracle:
+                    sqlHelper = new OracleHelper();
+                    conn = string.Empty;
+                    conn += "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=" + this.cmboxServer.Text.Trim() + ")";
+                    conn += "(PORT=" + this.txtPort.Text.Trim() + "))";
+                    conn += "(CONNECT_DATA=(SERVICE_NAME=" + this.cmboxDatabase.Text.Trim() + ")));";
+                    conn += "USER ID=" + this.txtUserId.Text.Trim() + ";PASSWORD=" + this.txtPassword.Text;
+                    sql = " SELECT NAME FROM v$database; ";
                     break;
             }
             return sqlHelper;
@@ -219,7 +236,7 @@ namespace DatabaseComparer.UIControl
             ISqlHelper sqlHelper = null;
 
             if (string.IsNullOrEmpty(this.txtUserId.Text) || string.IsNullOrEmpty(this.txtPassword.Text) ||
-                string.IsNullOrEmpty(this.txtPort.Text) || string.IsNullOrEmpty(this.cmboxServer.Text))
+                string.IsNullOrEmpty(this.cmboxServer.Text))
             {
                 this.lblTip.ForeColor = Color.Red;
                 this.lblTip.Text = "请输入连接字符串";
@@ -282,16 +299,22 @@ namespace DatabaseComparer.UIControl
             switch (rbtn.Text)
             {
                 case Data.XmlMysql:
-                    if (string.IsNullOrEmpty(this.txtPort.Text) || this.txtPort.Text == "1433")
+                    if (string.IsNullOrEmpty(this.txtPort.Text) || this.txtPort.Text == "1433" || this.txtPort.Text == "1521")
                     {
                         this.txtPort.Text = "3306";
                     }
                     break;
 
                 case Data.XmlSqlServer:
-                    if (string.IsNullOrEmpty(this.txtPort.Text) || this.txtPort.Text == "3306")
+                    if (string.IsNullOrEmpty(this.txtPort.Text) || this.txtPort.Text == "3306" || this.txtPort.Text == "1521")
                     {
                         this.txtPort.Text = "1433";
+                    }
+                    break;
+                case Data.XmlOracle:
+                    if (string.IsNullOrEmpty(this.txtPort.Text) || this.txtPort.Text == "1433" || this.txtPort.Text == "3306")
+                    {
+                        this.txtPort.Text = "1521";
                     }
                     break;
 

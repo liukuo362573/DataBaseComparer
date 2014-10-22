@@ -37,9 +37,9 @@
             // 
             // btnNext
             // 
-            this.btnNext.Location = new System.Drawing.Point(235, 213);
+            this.btnNext.Location = new System.Drawing.Point(235, 231);
             this.btnNext.Name = "btnNext";
-            this.btnNext.Size = new System.Drawing.Size(75, 21);
+            this.btnNext.Size = new System.Drawing.Size(75, 23);
             this.btnNext.TabIndex = 2;
             this.btnNext.Text = "下一步";
             this.btnNext.UseVisualStyleBackColor = true;
@@ -48,9 +48,9 @@
             // ckBoxIgnoreType
             // 
             this.ckBoxIgnoreType.AutoSize = true;
-            this.ckBoxIgnoreType.Location = new System.Drawing.Point(324, 217);
+            this.ckBoxIgnoreType.Location = new System.Drawing.Point(324, 235);
             this.ckBoxIgnoreType.Name = "ckBoxIgnoreType";
-            this.ckBoxIgnoreType.Size = new System.Drawing.Size(72, 16);
+            this.ckBoxIgnoreType.Size = new System.Drawing.Size(74, 17);
             this.ckBoxIgnoreType.TabIndex = 9;
             this.ckBoxIgnoreType.Text = "忽略类型";
             this.ckBoxIgnoreType.UseVisualStyleBackColor = true;
@@ -58,9 +58,9 @@
             // ckBoxIgnoreLength
             // 
             this.ckBoxIgnoreLength.AutoSize = true;
-            this.ckBoxIgnoreLength.Location = new System.Drawing.Point(401, 217);
+            this.ckBoxIgnoreLength.Location = new System.Drawing.Point(401, 235);
             this.ckBoxIgnoreLength.Name = "ckBoxIgnoreLength";
-            this.ckBoxIgnoreLength.Size = new System.Drawing.Size(96, 16);
+            this.ckBoxIgnoreLength.Size = new System.Drawing.Size(98, 17);
             this.ckBoxIgnoreLength.TabIndex = 10;
             this.ckBoxIgnoreLength.Text = "忽略字段长度";
             this.ckBoxIgnoreLength.UseVisualStyleBackColor = true;
@@ -68,9 +68,9 @@
             // dbConnectDestination
             // 
             this.dbConnectDestination.ConnectString = null;
-            this.dbConnectDestination.Location = new System.Drawing.Point(294, 2);
+            this.dbConnectDestination.Location = new System.Drawing.Point(284, 2);
             this.dbConnectDestination.Name = "dbConnectDestination";
-            this.dbConnectDestination.Size = new System.Drawing.Size(283, 204);
+            this.dbConnectDestination.Size = new System.Drawing.Size(283, 221);
             this.dbConnectDestination.TabIndex = 12;
             // 
             // dbConnectSource
@@ -78,14 +78,14 @@
             this.dbConnectSource.ConnectString = null;
             this.dbConnectSource.Location = new System.Drawing.Point(3, 2);
             this.dbConnectSource.Name = "dbConnectSource";
-            this.dbConnectSource.Size = new System.Drawing.Size(283, 204);
+            this.dbConnectSource.Size = new System.Drawing.Size(286, 221);
             this.dbConnectSource.TabIndex = 11;
             // 
             // FrmMain
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(580, 245);
+            this.ClientSize = new System.Drawing.Size(568, 265);
             this.Controls.Add(this.dbConnectDestination);
             this.Controls.Add(this.dbConnectSource);
             this.Controls.Add(this.ckBoxIgnoreLength);

@@ -13,6 +13,8 @@ namespace DatabaseComparer.Common
         public static string XmlRoot { get { return "Connect"; } }
         public const string XmlSqlServer = "SqlServer";
         public const string XmlMysql = "Mysql";
+        public const string XmlOracle = "Oracle";
+
         public const string Type = "type";
         public const string Selected = "selected";
 
