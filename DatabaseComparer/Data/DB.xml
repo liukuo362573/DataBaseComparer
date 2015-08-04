@@ -2,7 +2,7 @@
 <Root>
   <Connect selected="1" type="0">
     <cmboxServer>10.2.0.72</cmboxServer>
-    <cmboxDatabase></cmboxDatabase>
+    <cmboxDatabase>ORCL</cmboxDatabase>
     <txtPort>1521</txtPort>
     <txtPassword>hlmip001_a</txtPassword>
     <txtUserId>hlmip001_a</txtUserId>
@@ -10,7 +10,7 @@
   </Connect>
   <Connect selected="1" type="1">
     <cmboxServer>10.2.1.87</cmboxServer>
-    <cmboxDatabase></cmboxDatabase>
+    <cmboxDatabase>SMP</cmboxDatabase>
     <txtPort>1521</txtPort>
     <txtPassword>Hmp141006</txtPassword>
     <txtUserId>Hmp141006</txtUserId>

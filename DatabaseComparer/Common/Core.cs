@@ -15,9 +15,15 @@ namespace DatabaseComparer.Common
     {
         public static FrmDifferentList DifferentForm { get; set; }
 
-        static string MySqlServer = "show tables";
-        static string SqlServer = "SELECT name FROM sysobjects WHERE xtype='U' order by name";
-        static string OracleServer = "SELECT table_name as name  FROM user_tables order by table_name";
+        private static string MySqlServer = "show tables";
+        private static string SqlServer = "SELECT name FROM sysobjects WHERE xtype='U' order by name";
+        private static string OracleServer = "SELECT table_name as name  FROM user_tables order by table_name";
+
+        private static string MySqlServer_View = "";
+        private static string SqlServer_View = "";
+        private static string OracleServer_View = "select view_name from user_views ";
+
+        public static string ViewFlag = "ViewFlag_"; //视图前缀的标识
 
         #region 这个线程用于比较两个库的不同
         public static void DataBaseCompare(ProgressBar pBarSource, ProgressBar pBarDest)
@@ -62,7 +68,8 @@ namespace DatabaseComparer.Common
         #endregion
 
         #region 显示比较的树形结果
-        static void ShowCompareResult(Dictionary<string, List<DBTable>> source, TreeView tSource, Dictionary<string, List<DBTable>> dest, TreeView tDest, List<string> HandledTable)
+        static void ShowCompareResult(Dictionary<string, List<DBTable>> source, TreeView tSource,
+            Dictionary<string, List<DBTable>> dest, TreeView tDest, List<string> HandledTable)
         {
             foreach (var stable in source)
             {
@@ -126,28 +133,36 @@ namespace DatabaseComparer.Common
         public static void LoadDBTable(GroupBox gBox, string conn, string db, Dictionary<string, List<DBTable>> data)
         {
             DataTable dt = null;
+            DataTable dtView = null;
             string dbType = GetDBType(conn);
             switch (dbType)
             {
                 case Data.XmlMysql:
                     gBox.Text += " [" + db + "]";
                     dt = new MySqlHelper().ExecuteDataTable(conn, CommandType.Text, MySqlServer, null);
+                    dtView = new MySqlHelper().ExecuteDataTable(conn, CommandType.Text, MySqlServer_View, null);
                     break;
 
                 case Data.XmlOracle:
                     gBox.Text += " [" + db + "]";
                     dt = new OracleHelper().ExecuteDataTable(conn, CommandType.Text, OracleServer);
+                    dtView = new OracleHelper().ExecuteDataTable(conn, CommandType.Text, OracleServer_View);
                     break;
 
                 case Data.XmlSqlServer:
                     gBox.Text += " [" + db + "]";
                     dt = new SqlServerHelper().ExecuteDataTable(conn, CommandType.Text, SqlServer, null);
+                    dtView = new SqlServerHelper().ExecuteDataTable(conn, CommandType.Text, SqlServer_View, null);
                     break;
             }
 
             foreach (var t in dt.AsEnumerable().ToList())
             {
                 data.Add(t.ItemArray[0].ToString(), new List<DBTable>());
+            }
+            foreach (var view in dtView.AsEnumerable().ToList())
+            {
+                data.Add(ViewFlag + view.ItemArray[0].ToString(), new List<DBTable>());
             }
         }
 
@@ -218,7 +233,7 @@ namespace DatabaseComparer.Common
         }
         #endregion
 
-        #region 载入每个表的字段
+        #region 载入每个表和试图的字段
         public static void LoadTableField(string conn, Dictionary<string, List<DBTable>> list, ProgressBar pBar)
         {
             try
@@ -243,9 +258,15 @@ namespace DatabaseComparer.Common
                         switch (dbType)
                         {
                             case Data.XmlMysql:
-                                #region MySql数据库读取每张表的字段
-
-                                sql = "SHOW FULL COLUMNS FROM " + t.Key;
+                                #region MySql数据库读取每张表和视图的字段
+                                if (t.Key.StartsWith(ViewFlag))
+                                {
+                                    sql = "SELECT * FROM user_tab_cols WHERE table_name ='" + t.Key.Replace(ViewFlag, "") + "'";
+                                }
+                                else
+                                {
+                                    sql = "SHOW FULL COLUMNS FROM " + t.Key;
+                                }
                                 dt = new MySqlHelper().ExecuteDataTable(conn, CommandType.Text, sql, null);
                                 foreach (var field in dt.AsEnumerable().ToList())
                                 {
@@ -269,7 +290,14 @@ namespace DatabaseComparer.Common
                                 break;
 
                             case Data.XmlOracle:
-                                sql = "select COLUMN_NAME,DATA_TYPE,DATA_LENGTH,NULLABLE from USER_TAB_COLS  where TABLE_NAME='" + t.Key + "' ";
+                                if (t.Key.StartsWith(ViewFlag))
+                                {
+                                    sql = "SELECT * FROM user_tab_cols WHERE table_name ='" + t.Key.Replace(ViewFlag, "") + "'";
+                                }
+                                else
+                                {
+                                    sql = "select COLUMN_NAME,DATA_TYPE,DATA_LENGTH,NULLABLE from USER_TAB_COLS  where TABLE_NAME='" + t.Key + "'  And HIDDEN_COLUMN='NO'";
+                                }
                                 dt = new OracleHelper().ExecuteDataTable(conn, CommandType.Text, sql);
                                 foreach (var field in dt.AsEnumerable().ToList())
                                 {
